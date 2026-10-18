@@ -76,13 +76,15 @@ function columnSteps(op, a, b, answer) {
       const x = top[i] ?? 0;
       const carried = carry[i] ?? 0;
       const sum = x + (y ?? 0) + carried;
-      result[i] = sum % 10;
+      // A carry writes its digit in the snap step, after Bruno explains it.
+      if (sum < 10) result[i] = sum;
       if (y === null && !carried) snap("exBringDown", { x }, i);
       else if (y === null) snap("exAddCarryOnly", { x, sum }, i);
       else snap(carried ? ADD_CARRY_KEYS[place] : ADD_KEYS[place], { x, y, sum }, i);
       // width includes the answer, so a column that reaches 10 always has one to its left.
       if (sum >= 10) {
         carry[i - 1] = 1;
+        result[i] = sum % 10;
         snap(CARRY_KEYS[place], { sum, digit: sum % 10 }, i, "snap");
       }
     } else {

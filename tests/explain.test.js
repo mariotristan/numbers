@@ -68,6 +68,14 @@ test("47 + 38 carries 1 into the tens and gives 85", () => {
   assert.equal(last(steps).visual.value, 85);
 });
 
+test("47 + 38 writes the ones digit only in the carry (snap) step", () => {
+  const cols = explain(P("+", 47, 38, 5)).filter((s) => s.visual.type === "column");
+  assert.equal(cols[0].say.key, "exOnesAdd");
+  assert.equal(cols[0].visual.result[1], null);
+  const snap = cols.find((s) => s.visual.action === "snap");
+  assert.equal(snap.visual.result[1], 5);
+});
+
 test("403 − 158 borrows across the zero: top becomes 3,9,13 and result 245", () => {
   const cols = explain(P("-", 403, 158, 10)).filter((s) => s.visual.type === "column");
   assert.ok(cols.some((s) => deepEq(s.visual.top, [3, 10, 3])));
