@@ -85,10 +85,11 @@ const LAND =
   "M80 30 q14 -4 22 6 q2 12 -12 14 q-14 -4 -10 -20z" +
   "M120 -8 q12 -10 24 0 q8 12 -4 20 q-14 4 -20 -20z";
 
+// Sits just below the top bar (y = 10%) so it never hides behind the Back button.
 function globe() {
   const land = `<path d="${LAND}"/><path d="${LAND}" transform="translate(200 0)"/>`;
   return box(
-    "0", "0", "36%", "30%", "0 0 300 240", "xMinYMin meet",
+    "0", "10%", "32%", "26%", "0 0 300 240", "xMinYMin meet",
     `<g transform="translate(118 112)">` +
       `<circle r="78" fill="#fff" opacity=".35"/>` +
       `<circle r="70" fill="#4f93ea"/>` +
@@ -100,16 +101,19 @@ function globe() {
   );
 }
 
-// Clouds drift across a 1000-wide band. Each one starts at x = -250 and its negative delay
-// puts it at its resting spot `x` on load (the reduced-motion view pauses it right there).
-const DRIFT = 1500;
+// Clouds drift through a band across the top of the screen, above the level path and the
+// problem. The band keeps its shape (meet) and lets clouds draw past its sides, so they cross
+// the whole width on any screen. Each cloud starts at x = -600; its negative delay puts it at
+// its resting spot `x` on load (the reduced-motion view pauses it right there).
+const DRIFT_FROM = -600;
+const DRIFT = 2200;
 function cloud(p, { x, y, s, dur, fact }) {
-  const delay = -(((x + 250) / DRIFT) * dur).toFixed(1);
+  const delay = -(((x - DRIFT_FROM) / DRIFT) * dur).toFixed(1);
   const label = fact
-    ? `<text x="0" y="6" text-anchor="middle" font-size="30" font-weight="800" fill="#2f80ed" font-family="Trebuchet MS, sans-serif">${fact}</text>`
+    ? `<text x="0" y="8" text-anchor="middle" font-size="32" font-weight="800" fill="#2f80ed" opacity=".6" font-family="Trebuchet MS, sans-serif">${fact}</text>`
     : "";
   return (
-    `<g transform="translate(-250 ${y})"><g class="scene-cloud" style="--dur:${dur}s;--delay:${delay}s">` +
+    `<g transform="translate(${DRIFT_FROM} ${y})"><g class="scene-cloud" style="--dur:${dur}s;--delay:${delay}s">` +
       `<g transform="scale(${s})"><g fill="${p.cloud}">` +
         `<ellipse cx="0" cy="8" rx="78" ry="24"/><ellipse cx="-30" cy="-6" rx="34" ry="26"/><ellipse cx="18" cy="-14" rx="40" ry="32"/><ellipse cx="52" cy="4" rx="28" ry="20"/>` +
       `</g>${label}</g>` +
@@ -118,20 +122,22 @@ function cloud(p, { x, y, s, dur, fact }) {
 }
 
 const CLOUDS = [
-  { x: 330, y: 70, s: 1, dur: 70, fact: "7×8" },
-  { x: 690, y: 170, s: 0.9, dur: 85, fact: "10+5" },
-  { x: 90, y: 230, s: 0.85, dur: 95, fact: "100" },
-  { x: 880, y: 60, s: 0.7, dur: 60 },
-  { x: 520, y: 280, s: 0.6, dur: 110 },
+  { x: 260, y: 62, s: 0.9, dur: 120, fact: "7×8" },
+  { x: 700, y: 58, s: 0.85, dur: 140, fact: "10+5" },
+  { x: -150, y: 66, s: 0.8, dur: 160, fact: "100" },
+  { x: 480, y: 150, s: 0.55, dur: 100 },
+  { x: 1050, y: 140, s: 0.6, dur: 180 },
 ];
 
 function clouds(p) {
-  return box("0", "2%", "100%", "48%", "0 0 1000 400", "xMidYMin slice", CLOUDS.map((c) => cloud(p, c)).join(""));
+  return box("0", "0", "100%", "20%", "0 0 1000 200", "xMidYMin meet", CLOUDS.map((c) => cloud(p, c)).join(""));
 }
 
-function balloon({ x, y, color, symbol, ink = "#fff", delay }) {
+// `extra` balloons are left out on phones (see css/style.css) so they don't crowd the content.
+function balloon({ x, y, s = 1, color, symbol, ink = "#fff", bob = 4, delay = 0, extra = false }) {
   return (
-    `<g transform="translate(${x} ${y})"><g class="scene-balloon" style="--delay:${delay}s">` +
+    `<g transform="translate(${x} ${y}) scale(${s})"${extra ? ` class="scene-balloon-extra"` : ""}>` +
+    `<g class="scene-balloon" style="--bob:${bob}s;--delay:${delay}s">` +
       `<path d="M0 34 q-8 20 4 40 q8 18 -2 40" fill="none" stroke="#7a6a5a" stroke-width="2"/>` +
       `<path d="M-5 36 h10 l-5 -6z" fill="${color}"/>` +
       `<ellipse rx="28" ry="34" fill="${color}"/>` +
@@ -141,18 +147,30 @@ function balloon({ x, y, color, symbol, ink = "#fff", delay }) {
   );
 }
 
+const BALLOON = { red: "#ec6b62", blue: "#5b95e6", green: "#4fb876", yellow: "#f5cf4a", purple: "#9b7fd9", orange: "#f59a4a" };
+const DARK_INK = "#6b4f00";
+
+// The left column starts lower than the right one to stay clear of the globe.
+const LEFT_BALLOONS = [
+  { x: 48, y: 40, color: BALLOON.red, symbol: "+", bob: 4 },
+  { x: 124, y: 95, s: 0.7, color: BALLOON.purple, symbol: "7", bob: 3.4, delay: -1.1, extra: true },
+  { x: 56, y: 165, s: 0.85, color: BALLOON.blue, symbol: "×", bob: 4.6, delay: -1.6 },
+  { x: 124, y: 235, s: 0.65, color: BALLOON.orange, symbol: "3", bob: 3.8, delay: -2.7, extra: true },
+  { x: 50, y: 290, s: 0.75, color: BALLOON.yellow, symbol: "2", ink: DARK_INK, bob: 5, delay: -0.5 },
+];
+
+const RIGHT_BALLOONS = [
+  { x: 112, y: 52, color: BALLOON.green, symbol: "=", bob: 4.4, delay: -0.8 },
+  { x: 40, y: 130, s: 0.7, color: BALLOON.orange, symbol: "5", bob: 3.3, delay: -2.1, extra: true },
+  { x: 104, y: 212, s: 0.9, color: BALLOON.yellow, symbol: "−", ink: DARK_INK, bob: 4.2, delay: -2.4 },
+  { x: 38, y: 292, s: 0.7, color: BALLOON.purple, symbol: "9", bob: 4.8, delay: -1.4, extra: true },
+  { x: 112, y: 355, s: 0.75, color: BALLOON.blue, symbol: "4", bob: 3.6, delay: -3 },
+];
+
 function balloons() {
-  const left = [
-    balloon({ x: 50, y: 80, color: "#ec6b62", symbol: "+", delay: 0 }),
-    balloon({ x: 110, y: 230, color: "#5b95e6", symbol: "×", delay: -1.6 }),
-  ].join("");
-  const right = [
-    balloon({ x: 110, y: 60, color: "#4fb876", symbol: "=", delay: -0.8 }),
-    balloon({ x: 50, y: 210, color: "#f5cf4a", symbol: "−", ink: "#6b4f00", delay: -2.4 }),
-  ].join("");
   return (
-    box("0", "26%", "18%", "42%", "0 0 160 340", "xMinYMid meet", left) +
-    box("82%", "26%", "18%", "42%", "0 0 160 340", "xMaxYMid meet", right)
+    box("0", "30%", "18%", "44%", "0 0 160 360", "xMinYMin meet", LEFT_BALLOONS.map(balloon).join("")) +
+    box("82%", "22%", "18%", "52%", "0 0 160 440", "xMaxYMid meet", RIGHT_BALLOONS.map(balloon).join(""))
   );
 }
 
@@ -232,7 +250,8 @@ export function sceneryMarkup(variant) {
     `<svg class="scene scene-${name}" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" aria-hidden="true" focusable="false">` +
       defs(p) +
       `<rect width="100%" height="100%" fill="url(#nt-sky)"/>` +
-      sun(p) + clouds(p) + globe() + ground(p) + balloons() +
+      // The sun comes after the clouds so a passing cloud never covers its face.
+      clouds(p) + sun(p) + globe() + ground(p) + balloons() +
     `</svg>`
   );
 }

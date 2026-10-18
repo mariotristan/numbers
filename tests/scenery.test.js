@@ -36,6 +36,16 @@ test("balloons carry + − × = as text, and clouds carry math facts", () => {
   for (const fact of ["7×8", "10+5", "100"]) assert.ok(texts.includes(fact), `cloud ${fact}`);
 });
 
+test("eight to ten balloons, with digits too, and fewer on phones", () => {
+  const svg = sceneryMarkup("day");
+  const count = (svg.match(/class="scene-balloon"/g) ?? []).length;
+  assert.ok(count >= 8 && count <= 10, `${count} balloons`);
+  const extra = (svg.match(/class="scene-balloon-extra"/g) ?? []).length;
+  assert.ok(extra >= 2 && count - extra >= 4, `${extra} of ${count} hidden on phones`);
+  const balloonTexts = [...svg.matchAll(/class="scene-balloon"[^]*?<text[^>]*>([^<]*)<\/text>/g)].map((m) => m[1]);
+  assert.ok(balloonTexts.filter((t) => /^\d$/.test(t)).length >= 3, `digits: ${balloonTexts}`);
+});
+
 test("scenery loads nothing from outside the game", () => {
   for (const v of SCENE_VARIANTS) {
     assert.doesNotMatch(sceneryMarkup(v), /https?:\/\/(?!www\.w3\.org)|href=|<image|<script|\son\w+=/i, v);

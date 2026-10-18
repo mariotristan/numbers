@@ -13,8 +13,14 @@ function star(cx, cy, outer, inner) {
   }).join(" ");
 }
 
+const SKIN = "#e3a77a";
+const SKIN_SHADE = "#c98b62";
+const LINE = `stroke="#5a3d2b" stroke-opacity=".45" stroke-width="1.2"`;
+
 // Held items sit in Bruno's lower hand at (22, 104); the fist is redrawn on top so he grips them.
-const FIST = `<circle cx="22" cy="104" r="7" fill="#e3a77a"/>`;
+const FIST = `<circle cx="22" cy="104" r="7" fill="${SKIN}" ${LINE}/>
+<path d="M17 105.5 h7 M17.5 108.5 h6" stroke="${SKIN_SHADE}" stroke-width="1.2" stroke-linecap="round"/>
+<ellipse cx="27.5" cy="101.5" rx="2.6" ry="3.8" fill="${SKIN}" ${LINE} transform="rotate(-20 27.5 101.5)"/>`;
 
 export const OUTFIT_LAYERS = {
   "wizard-hat": `<path d="M33 22 Q60 15 87 22 L64 -9 Q60 -13 56 -8Z" fill="#2b3a8f"/>
@@ -95,27 +101,67 @@ const PENCIL = `<g class="bruno-pencil">
 </g>
 </g>`;
 
-const BODY = `<rect x="40" y="104" width="17" height="30" rx="6" fill="#3d4a6b"/>
-<rect x="63" y="104" width="17" height="30" rx="6" fill="#3d4a6b"/>
-<path d="M36 132 h24 v6 a4 4 0 0 1 -4 4 h-17 a5 5 0 0 1 -5 -5z" fill="#6b4a2b"/>
-<path d="M60 132 h24 v5 a5 5 0 0 1 -5 5 h-17 a4 4 0 0 1 -4 -4z" fill="#6b4a2b"/>
-<rect x="14" y="66" width="17" height="34" rx="8" fill="#7a57bf"/>
-<circle cx="22" cy="104" r="7" fill="#e3a77a"/>
+const SHIRT = "#8a66cf";
+const SLEEVE = "#7a57bf";
+const PANTS = "#3d4a6b";
+
+const SNEAKER = (x, flip) => {
+  const toe = flip ? `M${x} 132 h24 v5 a5 5 0 0 1 -5 5 h-17 a4 4 0 0 1 -4 -4z` : `M${x} 132 h24 v6 a4 4 0 0 1 -4 4 h-17 a5 5 0 0 1 -5 -5z`;
+  const lace = x + 12;
+  return `<path d="${toe}" fill="#e46a5f" ${LINE}/>
+<rect x="${x - 0.5}" y="138.5" width="25" height="4" rx="2" fill="#fff" ${LINE}/>
+<path d="M${lace - 5} 133.5 l4 2.5 M${lace - 1} 133.5 l-4 2.5 M${lace + 1} 133.5 l4 2.5 M${lace + 5} 133.5 l-4 2.5" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/>`;
+};
+
+const BODY = `<rect x="40" y="104" width="17" height="30" rx="6" fill="${PANTS}" ${LINE}/>
+<rect x="63" y="104" width="17" height="30" rx="6" fill="${PANTS}" ${LINE}/>
+<path d="M44 110 v18 M76 110 v18" stroke="#fff" stroke-opacity=".15" stroke-width="2" stroke-linecap="round"/>
+${SNEAKER(36, false)}
+${SNEAKER(60, true)}
+<rect x="14" y="66" width="17" height="34" rx="8" fill="${SLEEVE}" ${LINE}/>
+<rect x="14" y="94" width="17" height="5" rx="2.5" fill="#6a49ad"/>
+<circle cx="22" cy="104" r="7" fill="${SKIN}" ${LINE}/>
+<path d="M17 105.5 h7 M17.5 108.5 h6" stroke="${SKIN_SHADE}" stroke-width="1.2" stroke-linecap="round"/>
+<ellipse cx="27.5" cy="101.5" rx="2.6" ry="3.8" fill="${SKIN}" ${LINE} transform="rotate(-20 27.5 101.5)"/>
 <g class="bruno-wave">
-<rect x="89" y="40" width="17" height="38" rx="8" fill="#7a57bf"/>
-<circle cx="97" cy="36" r="7.5" fill="#e3a77a"/>
+<rect x="89" y="40" width="17" height="38" rx="8" fill="${SLEEVE}" ${LINE}/>
+<rect x="89" y="41" width="17" height="5" rx="2.5" fill="#6a49ad"/>
+<g fill="${SKIN}" ${LINE}>
+<rect x="91" y="24.5" width="3.6" height="9" rx="1.8"/>
+<rect x="95.2" y="22.5" width="3.6" height="10" rx="1.8"/>
+<rect x="99.4" y="23.5" width="3.6" height="9.5" rx="1.8"/>
+<rect x="103.2" y="27" width="3.4" height="8" rx="1.7"/>
+<circle cx="97" cy="36" r="7.5"/>
+<ellipse cx="89.5" cy="35" rx="2.6" ry="4" transform="rotate(30 89.5 35)"/>
 </g>
-<rect x="30" y="60" width="60" height="50" rx="14" fill="#8a66cf"/>
+</g>
+<rect x="30" y="60" width="60" height="50" rx="14" fill="${SHIRT}" ${LINE}/>
+<path d="M90 74 V96 a14 14 0 0 1 -14 14 h-6 Q84 100 84 62 Q90 64 90 74Z" fill="#000" opacity=".12"/>
+<path d="M35 72 q1 -6 6 -9" stroke="#fff" stroke-opacity=".35" stroke-width="2.5" fill="none" stroke-linecap="round"/>
 <path d="M48 60 L60 72 L72 60Z" fill="#fff"/>
+<path d="M45 59 L58 61 L52 69.5Z M75 59 L62 61 L68 69.5Z" fill="#a184e0" ${LINE} stroke-linejoin="round"/>
+<rect x="35" y="71" width="10" height="9" rx="2" fill="#7f5cc4" ${LINE}/>
+<path d="M35 74 h10" stroke="#6a49ad" stroke-width="1.2"/>
+<path d="M68 101 q4 -2.5 9 -1" stroke="#000" stroke-opacity=".18" stroke-width="1.5" fill="none" stroke-linecap="round"/>
 <rect x="40" y="86" width="40" height="11" rx="3" fill="#2e7d32"/>
 <text x="60" y="94.5" text-anchor="middle" font-size="8.5" font-weight="bold" font-family="Trebuchet MS, sans-serif" fill="#fff">BRUNO</text>
-<rect x="30" y="102" width="60" height="6" fill="#3d4a6b"/>
-<rect x="53" y="52" width="14" height="10" fill="#e3a77a"/>`;
+<rect x="30" y="102" width="60" height="6" fill="${PANTS}"/>
+<rect x="57" y="103" width="6" height="4" rx="1" fill="#c9a03a"/>
+<rect x="53" y="52" width="14" height="10" fill="${SKIN}"/>
+<path d="M53 55 h14 v3 q-7 3 -14 0z" fill="${SKIN_SHADE}" opacity=".6"/>`;
 
-const HEAD = `<circle cx="60" cy="36" r="22" fill="#e3a77a"/>
-<circle cx="38" cy="38" r="5" fill="#e3a77a"/>
-<circle cx="82" cy="38" r="5" fill="#e3a77a"/>
-<g class="bruno-eyes"><circle cx="51" cy="36" r="3.2" fill="#2b2118"/><circle cx="69" cy="36" r="3.2" fill="#2b2118"/></g>
+// Hair: a brown top with a short fringe and sideburns that peek out under the cap or any hat.
+const HAIR = `<path d="M38 36 Q35 12 60 13 Q85 12 82 36 Q80 29 77 27 Q73 30 69 27.5 Q65 30 61 27.5 Q57 30 53 27.5 Q49 30 45 27.5 Q41 29 38 36Z" fill="#5a3a24"/>`;
+
+const HEAD = `<circle cx="60" cy="36" r="22" fill="${SKIN}" ${LINE}/>
+<path d="M76 21 A22 22 0 0 1 60 58 A24 24 0 0 0 76 21Z" fill="${SKIN_SHADE}" opacity=".4"/>
+${HAIR}
+<circle cx="38" cy="38" r="5" fill="${SKIN}" ${LINE}/>
+<circle cx="82" cy="38" r="5" fill="${SKIN}" ${LINE}/>
+<path d="M38.5 35.5 q-2 2.5 0 5 M81.5 35.5 q2 2.5 0 5" stroke="${SKIN_SHADE}" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+<path d="M46.5 30.8 q4.5 -2.6 9 -0.4 M64.5 30.4 q4.5 -2.2 9 0.4" stroke="#5a3a24" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+<g class="bruno-eyes"><circle cx="51" cy="36" r="3.2" fill="#2b2118"/><circle cx="69" cy="36" r="3.2" fill="#2b2118"/><circle cx="52.1" cy="34.9" r="1" fill="#fff"/><circle cx="70.1" cy="34.9" r="1" fill="#fff"/></g>
+<path d="M60 37.5 q2.8 3.2 -0.3 4.6" stroke="${SKIN_SHADE}" stroke-width="1.8" fill="none" stroke-linecap="round"/>
 <circle cx="45" cy="44" r="4" fill="#f29b8a" opacity=".6"/>
 <circle cx="75" cy="44" r="4" fill="#f29b8a" opacity=".6"/>
 <path d="M51 45 q9 8 18 0" stroke="#7a3b2a" stroke-width="2.5" fill="none" stroke-linecap="round"/>`;
