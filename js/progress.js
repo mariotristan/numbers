@@ -14,6 +14,7 @@ export function freshState() {
   return {
     version: VERSION,
     lang: "en",
+    langChosen: false,
     settings: { sfx: true, voice: true },
     levels: {},
     coins: 0,
@@ -101,7 +102,13 @@ export function awardBadges(state) {
 
 export function setLanguage(state, lang) {
   if (!LANGS.includes(lang)) return state;
-  return { ...state, lang };
+  return { ...state, lang, langChosen: true };
+}
+
+// First visit: follow a Spanish browser until the kid picks a language themselves.
+export function withBrowserLanguage(state, browserLang) {
+  if (state.langChosen || !String(browserLang ?? "").toLowerCase().startsWith("es")) return state;
+  return { ...state, lang: "es" };
 }
 
 export function setSetting(state, key, value) {
@@ -109,7 +116,7 @@ export function setSetting(state, key, value) {
 }
 
 export function resetProgress(state) {
-  return { ...freshState(), lang: state.lang, settings: { ...state.settings } };
+  return { ...freshState(), lang: state.lang, langChosen: state.langChosen, settings: { ...state.settings } };
 }
 
 const isObject = (v) => v !== null && typeof v === "object" && !Array.isArray(v);
@@ -157,6 +164,7 @@ export function validate(raw) {
   return {
     version: VERSION,
     lang: raw.lang,
+    langChosen: raw.langChosen === true,
     settings: { sfx: raw.settings.sfx !== false, voice: raw.settings.voice !== false },
     levels: cleanLevels(raw.levels),
     coins,

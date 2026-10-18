@@ -1,5 +1,5 @@
 import { t, localized, setLang, getLang } from "./i18n.js";
-import { load, save, browserStorage } from "./progress.js";
+import { load, save, browserStorage, withBrowserLanguage } from "./progress.js";
 import { configureAudio, speak, sfx, stopAll } from "./audio.js";
 import * as welcome from "./screens/welcome.js";
 import * as path from "./screens/path.js";
@@ -14,7 +14,7 @@ const SCREENS = { welcome, path, play, results, shop, stickers, settings };
 export function start() {
   const root = document.getElementById("app");
   const storage = browserStorage();
-  let state = load(storage);
+  let state = withBrowserLanguage(load(storage), globalThis.navigator?.language);
   let current = { name: "welcome", params: {} };
 
   const applyState = () => {

@@ -23,7 +23,7 @@ const S = (id, emoji, fluent, en, es) => ({ id, emoji, fluent, name: { en, es },
 
 export const STICKERS = [
   S("rocket", "🚀", "Rocket", "Rocket", "Cohete"),
-  S("t-rex", "🦖", "T-Rex", "T-Rex", "T-Rex"),
+  S("t-rex", "🦖", "T-rex", "T-Rex", "T-Rex"),
   S("pizza", "🍕", "Pizza", "Pizza", "Pizza"),
   S("rainbow", "🌈", "Rainbow", "Rainbow", "Arcoíris"),
   S("unicorn", "🦄", "Unicorn", "Unicorn", "Unicornio"),

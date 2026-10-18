@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   freshState, addCoins, recordRound, isLevelUnlocked, currentLevel, canBuy, buy, toggleWear,
   earnedBadges, awardBadges, validate, load, save, memoryStorage, resetProgress, STORAGE_KEY,
+  setLanguage, withBrowserLanguage,
 } from "../js/progress.js";
 
 const play = (s, id, score) => recordRound(s, id, { score, problemKeys: ["a"] });
@@ -134,4 +135,23 @@ test("resetProgress keeps lang and settings", () => {
   s = resetProgress(s);
   assert.equal(s.lang, "es");
   assert.equal(s.coins, 0);
+});
+
+test("withBrowserLanguage picks es for a Spanish browser only until a language is chosen", () => {
+  const fresh = freshState();
+  assert.equal(fresh.langChosen, false);
+  assert.equal(withBrowserLanguage(fresh, "es-MX").lang, "es");
+  assert.equal(withBrowserLanguage(fresh, "en-US").lang, "en");
+  assert.equal(withBrowserLanguage(fresh, undefined).lang, "en");
+  const chosen = setLanguage(fresh, "en");
+  assert.equal(chosen.langChosen, true);
+  assert.equal(withBrowserLanguage(chosen, "es-ES").lang, "en");
+  assert.equal(setLanguage(fresh, "fr"), fresh);
+  // The choice survives a save/load round trip and a reset; a bogus flag is cleaned.
+  assert.equal(validate(JSON.parse(JSON.stringify(chosen))).langChosen, true);
+  assert.equal(resetProgress(chosen).langChosen, true);
+  assert.equal(validate({ ...fresh, langChosen: "yes" }).langChosen, false);
+  const old = { ...fresh };
+  delete old.langChosen;
+  assert.equal(validate(old).langChosen, false);
 });

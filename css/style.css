@@ -92,7 +92,15 @@ button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink
   background: transparent;
   box-shadow: none;
 }
-.bruno-face svg { display: block; width: 72px; height: 97px; overflow: visible; animation: bruno-float 3s ease-in-out infinite; }
+/* Bruno is the guide: about 135 px tall on iPad, bigger on Welcome and in the shop's closet. */
+.bruno-face svg { display: block; width: 84px; height: 113px; overflow: visible; animation: bruno-float 3s ease-in-out infinite; }
+.bruno-hero .bruno-face svg { width: 150px; height: 202px; }
+.bruno-mannequin .bruno-face svg { width: 130px; height: 175px; }
+@media (min-width: 768px) {
+  .bruno-face svg { width: 100px; height: 135px; }
+  .bruno-hero .bruno-face svg { width: 190px; height: 256px; }
+  .bruno-mannequin .bruno-face svg { width: 170px; height: 230px; }
+}
 .bruno-wave { transform-origin: 98px 74px; animation: bruno-wave 1.6s ease-in-out infinite; }
 .bruno-eyes { transform-box: fill-box; transform-origin: center; animation: bruno-blink 4s infinite; }
 .bubble.pop { animation: bubble-pop 0.35s ease-out; }
@@ -192,7 +200,9 @@ h1 > .icon { width: 1em; height: 1em; margin-right: 0.3em; vertical-align: -0.12
   body { font-size: 18px; }
   #app { padding: 12px; }
   .grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-  .bruno-face svg { width: 56px; height: 76px; }
+  .bruno-face svg { width: 60px; height: 81px; }
+  .bruno-hero .bruno-face svg { width: 120px; height: 162px; }
+  .bruno-mannequin .bruno-face svg { width: 96px; height: 130px; }
   .bubble { font-size: 19px; }
 }
 
@@ -452,6 +462,56 @@ h1 > .icon { width: 1em; height: 1em; margin-right: 0.3em; vertical-align: -0.12
   .equation, .column { font-size: 36px; }
   .visual-array .array-row { --u: 14px; }
 }
+
+/* Welcome */
+.welcome-screen { align-items: center; justify-content: center; min-height: calc(100vh - 32px); gap: 24px; }
+.welcome-screen .bruno { width: 100%; max-width: 640px; }
+.start-btn { font-size: 34px; padding: 16px 56px; }
+
+/* Shop and Sticker Book */
+ul.grid { list-style: none; margin: 0; padding: 0; }
+.tabs button { font-weight: 800; }
+.shop-card {
+  display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 12px 8px; background: #fff; border-radius: 20px; box-shadow: 0 4px 0 rgba(0, 0, 0, 0.1);
+  text-align: center; font-weight: 700;
+}
+.shop-card.worn { box-shadow: 0 0 0 4px var(--accent), 0 4px 0 rgba(0, 0, 0, 0.1); }
+.shop-card .art { width: 96px; height: 96px; font-size: 64px; }
+.closet-art { display: grid; place-items: center; }
+.closet-art svg { width: 100%; height: 100%; }
+.shop-body { display: flex; flex-direction: column; gap: 16px; }
+@media (min-width: 768px) {
+  /* The closet: Bruno the mannequin stands beside the clothes, staying in view while you scroll. */
+  .shop-closet { display: grid; grid-template-columns: 250px 1fr; align-items: start; }
+  .shop-closet .bruno { position: sticky; top: 16px; flex-direction: column-reverse; align-items: center; }
+  .shop-closet .bubble { width: 100%; }
+  .shop-closet .bruno .bubble::before {
+    left: 50%; bottom: -12px; margin-left: -12px;
+    border: 12px solid transparent; border-top-color: #fff; border-bottom: 0;
+  }
+}
+.buy-btn, .wear-btn { width: 100%; font-weight: 800; }
+.buy-btn:not([aria-disabled="true"]) { background: #fff3b0; box-shadow: 0 4px 0 #d9a400; }
+.buy-btn[aria-disabled="true"] { font-size: 17px; }
+.owned-label { display: inline-flex; align-items: center; gap: 6px; min-height: var(--tap); color: #1e7d46; }
+.owned-label .icon { color: #27ae60; }
+.sticker { gap: 6px; }
+.sticker .art { width: 88px; height: 88px; font-size: 64px; }
+.sticker.unknown .art { filter: brightness(0) opacity(0.25); opacity: 1; }
+.sticker .hint { font-size: 15px; font-weight: 400; color: #6b5f54; }
+.sticker .price { font-size: 18px; padding: 2px 12px; background: #fff7e0; }
+.stickers-screen > h2 { align-self: flex-start; }
+
+/* Confirm dialog */
+.confirm-dialog {
+  max-width: min(520px, calc(100vw - 32px)); padding: 24px; border: 0; border-radius: 28px;
+  background: var(--cream); color: var(--ink); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3); text-align: center;
+}
+.confirm-dialog::backdrop { background: rgba(43, 33, 24, 0.45); }
+.confirm-dialog p { margin: 0 0 20px; font-size: 24px; font-weight: 700; }
+.confirm-dialog .btn-primary { font-size: 24px; padding: 8px 32px; }
+.confirm-dialog button { min-width: 120px; }
 
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }

@@ -111,3 +111,30 @@ export function coinPill(ctx) {
     h("span", { class: "coin-count", "aria-hidden": "true" }, n),
     h("span", { class: "sr-only" }, ctx.t("coinsLabel", { n })));
 }
+
+// A modal Yes/No question. Escape or No just closes it; focus goes back to the opener.
+// The dialog lives inside `parent`, so a re-render removes it.
+export function confirmDialog(ctx, parent, message, onYes) {
+  const opener = document.activeElement;
+  const dialog = h("dialog", { class: "confirm-dialog", "aria-labelledby": "confirm-text" });
+  const restoreFocus = () => { if (opener?.isConnected) opener.focus(); };
+  const no = h("button", { "data-focus": "confirm-no", onclick: () => dialog.close() }, ctx.t("no"));
+  const yes = h("button", {
+    class: "btn-primary",
+    "data-focus": "confirm-yes",
+    onclick: () => {
+      dialog.close();
+      restoreFocus(); // so a re-render keeps focus on the opener's data-focus twin
+      onYes();
+    },
+  }, icon("check"), ctx.t("yes"));
+  dialog.append(h("p", { id: "confirm-text" }, message), h("div", { class: "row" }, yes, no));
+  dialog.addEventListener("close", () => {
+    dialog.remove();
+    restoreFocus();
+  });
+  parent.append(dialog);
+  dialog.showModal();
+  no.focus();
+  return dialog;
+}
