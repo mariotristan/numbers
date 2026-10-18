@@ -1,6 +1,6 @@
 import { t, localized, setLang, getLang } from "./i18n.js";
 import { load, save, browserStorage } from "./progress.js";
-import { configureAudio, speak, chime, stopAll } from "./audio.js";
+import { configureAudio, speak, sfx, stopAll } from "./audio.js";
 import * as welcome from "./screens/welcome.js";
 import * as path from "./screens/path.js";
 import * as play from "./screens/play.js";
@@ -47,10 +47,9 @@ export function start() {
     get quiet() { return quietRender; },
     t,
     localized,
-    // Task 7 replaces this sfx shim with real sound effects.
     audio: {
       speak: (text) => speak(text, getLang()),
-      sfx: (kind) => chime(kind === "correct" || kind === "coin" || kind === "fanfare" ? "correct" : "wrong"),
+      sfx,
       stop: stopAll,
     },
     update(fn) {
