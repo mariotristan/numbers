@@ -42,7 +42,7 @@ export function render(root, ctx) {
         class: "wear-btn",
         "data-focus": `item-${item.id}`,
         "aria-pressed": String(worn),
-        "aria-label": ctx.t("wearItem", { item: name }),
+        "aria-label": ctx.t(worn ? "removeItem" : "wearItem", { item: name }), // starts with the visible text
         onclick: () => {
           ctx.update((s) => toggleWear(s, item.id));
           ctx.rerender();
@@ -54,6 +54,7 @@ export function render(root, ctx) {
       return h("button", {
         class: "buy-btn",
         "aria-disabled": "true",
+        "aria-label": ctx.t("itemMoreCoins", { item: name, n: short }),
         "data-focus": `item-${item.id}`,
         onclick: () => brunoEl.say(ctx.t("needCoins", { n: short })),
       }, icon("coin"), ctx.t("moreCoins", { n: short }));
@@ -83,6 +84,8 @@ export function render(root, ctx) {
     "aria-pressed": String(tab === id),
     onclick: () => {
       ctx.params.tab = id;
+      delete ctx.params.line; // a new tab starts with Bruno's hello
+      delete ctx.params.lineVars;
       ctx.rerender();
     },
   }, icon(iconName), label);

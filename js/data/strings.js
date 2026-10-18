@@ -28,6 +28,7 @@ export const STRINGS = {
   buyFor: { en: "Buy {item} for {price} coins", es: "Comprar {item} por {price} monedas" },
   buyConfirm: { en: "Buy {item} for {price} coins?", es: "¿Comprar {item} por {price} monedas?" },
   moreCoins: { en: "{n} more coins", es: "{n} monedas más" },
+  itemMoreCoins: { en: "{item}: {n} more coins", es: "{item}: {n} monedas más" },
   needCoins: {
     en: "You need {n} more coins for that one. Play a round to earn them!",
     es: "Te faltan {n} monedas para eso. ¡Juega una ronda para ganarlas!",
@@ -37,6 +38,7 @@ export const STRINGS = {
   wear: { en: "Wear", es: "Usar" },
   remove: { en: "Remove", es: "Quitar" },
   wearItem: { en: "Wear {item}", es: "Usar: {item}" },
+  removeItem: { en: "Remove {item}", es: "Quitar: {item}" },
   inBook: { en: "In your book", es: "En tu álbum" },
   yes: { en: "Yes", es: "Sí" },
   no: { en: "No", es: "No" },
