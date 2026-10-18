@@ -1,0 +1,11 @@
+{
+  "name": "bruno-numbers",
+  "version": "1.0.0",
+  "description": "Bruno's Numbers — a free math game for kids",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test"
+  }
+}
