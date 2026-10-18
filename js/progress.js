@@ -1,55 +1,102 @@
 // Pure progress state. Every function returns a new state; storage is injected.
+import { LEVELS, PASS_SCORE } from "./data/levels.js";
+import { CLOSET, STICKERS, BADGES, SLOTS } from "./data/shop.js";
+import { starsFor } from "./round.js";
 
 export const VERSION = 1;
 export const STORAGE_KEY = "bruno-numbers";
 const LANGS = ["en", "es"];
+const MAX_SCORE = 10;
+const closetItem = (id) => CLOSET.find((i) => i.id === id);
+const stickerItem = (id) => STICKERS.find((s) => s.id === id);
 
 export function freshState() {
   return {
     version: VERSION,
     lang: "en",
     settings: { sfx: true, voice: true },
-    visited: {},
-    bestStars: {},
-    stickers: {},
+    levels: {},
+    coins: 0,
+    lifetimeCoins: 0,
+    roundsPlayed: 0,
+    owned: [],
+    worn: { hat: null, glasses: null, neck: null, held: null },
+    stickers: [],
+    badges: [],
+    lastProblems: {},
   };
 }
 
-export function markVisited(state, animalId) {
-  if (state.visited[animalId]) return state;
-  return { ...state, visited: { ...state.visited, [animalId]: true } };
+export function addCoins(state, n) {
+  const add = Math.max(0, Math.floor(n));
+  return { ...state, coins: state.coins + add, lifetimeCoins: state.lifetimeCoins + add };
 }
 
-export function recordQuizResult(state, zoneId, { stars, stickerIds }) {
-  const stickers = { ...state.stickers };
-  for (const id of stickerIds) stickers[id] = true;
-  const best = Math.max(state.bestStars[zoneId] ?? 0, stars);
-  return { ...state, bestStars: { ...state.bestStars, [zoneId]: best }, stickers };
+export function recordRound(state, levelId, { score, problemKeys }) {
+  const old = state.levels[levelId] ?? { bestScore: 0, bestStars: 0, rounds: 0 };
+  const bestScore = Math.max(old.bestScore, score);
+  return {
+    ...state,
+    roundsPlayed: state.roundsPlayed + 1,
+    levels: {
+      ...state.levels,
+      [levelId]: { bestScore, bestStars: starsFor(bestScore), rounds: old.rounds + 1 },
+    },
+    lastProblems: { ...state.lastProblems, [levelId]: [...problemKeys] },
+  };
 }
 
-export function newStickerIds(state, stickerIds) {
-  return stickerIds.filter((id) => !state.stickers[id]);
+export function isLevelUnlocked(state, id) {
+  if (id === 1) return true;
+  return (state.levels[id - 1]?.bestScore ?? 0) >= PASS_SCORE;
 }
 
-export function totalStars(state) {
-  return Object.values(state.bestStars).reduce((sum, n) => sum + n, 0);
+export function currentLevel(state) {
+  let best = 1;
+  for (const l of LEVELS) if (isLevelUnlocked(state, l.id)) best = l.id;
+  return best;
 }
 
-export function isZoneUnlocked(state, zone) {
-  return totalStars(state) >= zone.threshold;
+export function canBuy(state, id) {
+  const item = closetItem(id) ?? stickerItem(id);
+  if (!item) return false;
+  const have = closetItem(id) ? state.owned : state.stickers;
+  return !have.includes(id) && state.coins >= item.price;
 }
 
-export function newlyUnlockedZones(before, after, zones) {
-  return zones.filter((z) => !isZoneUnlocked(before, z) && isZoneUnlocked(after, z)).map((z) => z.id);
+export function buy(state, id) {
+  if (!canBuy(state, id)) return null;
+  const item = closetItem(id) ?? stickerItem(id);
+  const coins = state.coins - item.price;
+  return closetItem(id)
+    ? { ...state, coins, owned: [...state.owned, id] }
+    : { ...state, coins, stickers: [...state.stickers, id] };
 }
 
-export function visitedCount(state, zoneId, animals) {
-  return animals.filter((a) => a.zone === zoneId && state.visited[a.id]).length;
+export function toggleWear(state, itemId) {
+  const item = closetItem(itemId);
+  if (!item || !state.owned.includes(itemId)) return state;
+  const next = state.worn[item.slot] === itemId ? null : itemId;
+  return { ...state, worn: { ...state.worn, [item.slot]: next } };
 }
 
-export function isQuizUnlocked(state, zoneId, animals) {
-  const total = animals.filter((a) => a.zone === zoneId).length;
-  return total > 0 && visitedCount(state, zoneId, animals) === total;
+const BADGE_RULES = {
+  "first-perfect": (s) => Object.values(s.levels).some((l) => l.bestScore === MAX_SCORE),
+  "grade-2": (s) => (s.levels[7]?.bestScore ?? 0) >= PASS_SCORE,
+  "grade-3": (s) => (s.levels[12]?.bestScore ?? 0) >= PASS_SCORE,
+  "grade-4": (s) => (s.levels[14]?.bestScore ?? 0) >= PASS_SCORE,
+  "coins-100": (s) => s.lifetimeCoins >= 100,
+  "rounds-10": (s) => s.roundsPlayed >= 10,
+};
+
+export function earnedBadges(state) {
+  return BADGES.map((b) => b.id).filter((id) => BADGE_RULES[id](state));
+}
+
+export function awardBadges(state) {
+  const newIds = earnedBadges(state).filter((id) => !state.badges.includes(id));
+  if (!newIds.length) return { state, newIds };
+  return { state: { ...state, badges: [...state.badges, ...newIds] }, newIds };
 }
 
 export function setLanguage(state, lang) {
@@ -67,27 +114,59 @@ export function resetProgress(state) {
 
 const isObject = (v) => v !== null && typeof v === "object" && !Array.isArray(v);
 
-function trueKeys(obj) {
+const count = (v) => (Number.isFinite(v) ? Math.max(0, Math.floor(v)) : 0);
+
+function knownIds(list, known) {
+  if (!Array.isArray(list)) return [];
+  return [...new Set(list.filter((id) => typeof id === "string" && known.some((k) => k.id === id)))];
+}
+
+function cleanLevels(raw) {
   const out = {};
-  for (const [key, value] of Object.entries(obj)) if (value === true) out[key] = true;
+  if (!isObject(raw)) return out;
+  for (const l of LEVELS) {
+    const e = raw[l.id];
+    if (!isObject(e) || !Number.isInteger(e.bestScore) || e.bestScore < 0 || e.bestScore > MAX_SCORE) continue;
+    out[l.id] = { bestScore: e.bestScore, bestStars: starsFor(e.bestScore), rounds: count(e.rounds) };
+  }
+  return out;
+}
+
+function cleanLastProblems(raw) {
+  const out = {};
+  if (!isObject(raw)) return out;
+  for (const l of LEVELS) {
+    const keys = raw[l.id];
+    if (Array.isArray(keys)) out[l.id] = keys.filter((k) => typeof k === "string").slice(0, 10);
+  }
   return out;
 }
 
 // Returns a clean state, or null if the shape or version is wrong.
 export function validate(raw) {
   if (!isObject(raw) || raw.version !== VERSION || !LANGS.includes(raw.lang)) return null;
-  if (![raw.settings, raw.visited, raw.bestStars, raw.stickers].every(isObject)) return null;
-  const bestStars = {};
-  for (const [zoneId, n] of Object.entries(raw.bestStars)) {
-    if (Number.isInteger(n) && n >= 0 && n <= 3) bestStars[zoneId] = n;
+  if (!isObject(raw.settings)) return null;
+  const owned = knownIds(raw.owned, CLOSET);
+  const rawWorn = isObject(raw.worn) ? raw.worn : {};
+  const worn = {};
+  for (const slot of SLOTS) {
+    const id = rawWorn[slot];
+    worn[slot] = owned.includes(id) && closetItem(id).slot === slot ? id : null;
   }
+  const coins = count(raw.coins);
   return {
     version: VERSION,
     lang: raw.lang,
     settings: { sfx: raw.settings.sfx !== false, voice: raw.settings.voice !== false },
-    visited: trueKeys(raw.visited),
-    bestStars,
-    stickers: trueKeys(raw.stickers),
+    levels: cleanLevels(raw.levels),
+    coins,
+    lifetimeCoins: Math.max(coins, count(raw.lifetimeCoins)),
+    roundsPlayed: count(raw.roundsPlayed),
+    owned,
+    worn,
+    stickers: knownIds(raw.stickers, STICKERS),
+    badges: knownIds(raw.badges, BADGES),
+    lastProblems: cleanLastProblems(raw.lastProblems),
   };
 }
 
