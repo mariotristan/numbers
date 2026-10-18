@@ -56,4 +56,8 @@ export function entryValue(entry) {
   return typed.length === 0 ? null : Number(typed.join(""));
 }
 
-export const canCheck = (entry) => entryValue(entry) !== null;
+// Vertical answers are typed ones-first, so Check waits for the ones box (R4).
+export function canCheck(entry) {
+  if (entry.layout === "vertical" && entry.digits[entry.boxes - 1] === null) return false;
+  return entryValue(entry) !== null;
+}

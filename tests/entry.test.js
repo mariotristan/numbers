@@ -78,3 +78,18 @@ test("entry survives a JSON round-trip and does not mutate", () => {
   assert.deepEqual(e.digits, [null, null]);
   assert.deepEqual(JSON.parse(JSON.stringify(f)), f);
 });
+
+test("vertical: Check needs the ones box; a blank tens box reads as empty", () => {
+  let e = select(V(85), 0);
+  e = press(e, 8); // tens typed, ones still blank
+  assert.deepEqual(e.digits, [8, null]);
+  assert.equal(canCheck(e), false);
+  const onesOnly = press(V(85), 5);
+  assert.deepEqual(onesOnly.digits, [null, 5]);
+  assert.equal(canCheck(onesOnly), true);
+  assert.equal(entryValue(onesOnly), 5);
+});
+
+test("horizontal: Check is enabled after any digit", () => {
+  assert.equal(canCheck(press(H(56), 5)), true);
+});

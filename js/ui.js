@@ -102,3 +102,12 @@ export function languageToggle(ctx, { onChange } = {}) {
   return h("div", { class: "row", role: "group", "aria-label": ctx.t("language") },
     option("en", "English"), option("es", "Español"));
 }
+
+// The coin counter shown in the top bar. Screen readers hear "48 coins".
+export function coinPill(ctx) {
+  const n = ctx.state.coins;
+  return h("span", { class: "pill coin-pill" },
+    icon("coin"),
+    h("span", { class: "coin-count", "aria-hidden": "true" }, n),
+    h("span", { class: "sr-only" }, ctx.t("coinsLabel", { n })));
+}

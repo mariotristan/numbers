@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { blockCounts, originalTop, placeOf } from "../js/blocks.js";
+import { blockCounts, originalTop, placeOf, tradeSound } from "../js/blocks.js";
 import { explain } from "../js/math/explain.js";
 import { digitsOf } from "../js/math/problems.js";
 
@@ -32,4 +32,19 @@ test("originalTop recovers the struck-out digits in every borrow step", () => {
 test("blocks.js imports without a DOM", async () => {
   const mod = await import("../js/blocks.js");
   for (const name of ["renderBlocks", "renderVisual", "renderProblem"]) assert.equal(typeof mod[name], "function", name);
+});
+
+const prob = (level, op, a, b, layout) => ({
+  level, op, a, b, layout, key: `${a}${op}${b}`, answer: op === "+" ? a + b : op === "-" ? a - b : a * b,
+});
+
+test("tradeSound marks the step where blocks snap or crack, once", () => {
+  const sounds = (p) => explain(p).map((_, i, steps) => tradeSound(steps, i));
+  assert.deepEqual(sounds(prob(1, "+", 8, 7, "horizontal")), [null, "snap", null, null]);
+  assert.deepEqual(sounds(prob(1, "+", 3, 4, "horizontal")), [null, null, null]);
+  assert.deepEqual(sounds(prob(2, "-", 15, 8, "horizontal")), [null, "crack", null, null, null]);
+  assert.ok(sounds(prob(5, "+", 47, 38, "vertical")).includes("snap"));
+  assert.ok(sounds(prob(6, "-", 52, 27, "vertical")).includes("crack"));
+  assert.ok(!sounds(prob(3, "+", 34, 25, "vertical")).some(Boolean));
+  assert.ok(!sounds(prob(8, "×", 4, 5, "horizontal")).some(Boolean));
 });

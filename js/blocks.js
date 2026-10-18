@@ -29,6 +29,20 @@ export function originalTop({ top, crossed }) {
     t == null || !crossed[i] ? t : t - (received[i] ? 10 : 0) + (received[i + 1] ? 1 : 0));
 }
 
+// The trade sound for explanation step i: "snap" or "crack" on the step whose visual starts
+// a trade, else null. The make-ten snap stays on screen for the next step; it sounds once.
+export function tradeSound(steps, i) {
+  const kind = (v) => {
+    if (v?.type === "column") return v.action ?? null;
+    if (v?.type === "cubes") return v.snapTen ? "snap" : null;
+    if (v?.type === "takeAway") return v.breakTen && v.remove === 0 ? "crack" : null;
+    return null;
+  };
+  const now = kind(steps[i]?.visual);
+  if (!now || (steps[i].visual.type === "cubes" && kind(steps[i - 1]?.visual) === now)) return null;
+  return now;
+}
+
 // ---- DOM ----
 
 const piece = (place, extra = "", i = null) =>
