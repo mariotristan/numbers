@@ -1,6 +1,7 @@
 import { t, localized, setLang, getLang } from "./i18n.js";
 import { load, save, browserStorage, withBrowserLanguage } from "./progress.js";
 import { configureAudio, speak, sfx, stopAll } from "./audio.js";
+import { sceneryMarkup, variantForLevel } from "./scenery.js";
 import * as welcome from "./screens/welcome.js";
 import * as path from "./screens/path.js";
 import * as play from "./screens/play.js";
@@ -13,6 +14,7 @@ const SCREENS = { welcome, path, play, results, shop, stickers, settings };
 
 export function start() {
   const root = document.getElementById("app");
+  const sceneryLayer = document.getElementById("scenery");
   const storage = browserStorage();
   let state = withBrowserLanguage(load(storage), globalThis.navigator?.language);
   let current = { name: "welcome", params: {} };
@@ -25,10 +27,22 @@ export function start() {
   };
 
   let quietRender = false;
+  let sceneVariant = null;
+
+  // Number Town behind every screen: rounds take on their level's time of day.
+  // Only swap the drawing when the light changes, so clouds don't jump on every render.
+  const showScenery = () => {
+    const leveled = current.name === "play" || current.name === "results";
+    const next = leveled ? variantForLevel(current.params.level) : "day";
+    if (!sceneryLayer || next === sceneVariant) return;
+    sceneVariant = next;
+    sceneryLayer.innerHTML = sceneryMarkup(next);
+  };
 
   const renderCurrent = ({ quiet = false } = {}) => {
     stopAll();
     const focusKey = document.activeElement?.dataset?.focus;
+    showScenery();
     root.replaceChildren();
     quietRender = quiet;
     try {
