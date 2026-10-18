@@ -93,3 +93,39 @@ test("vertical: Check needs the ones box; a blank tens box reads as empty", () =
 test("horizontal: Check is enabled after any digit", () => {
   assert.equal(canCheck(press(H(56), 5)), true);
 });
+
+test("vertical backspace clears the most recent digit and walks toward the ones", () => {
+  let e = V(245);
+  for (const d of [5, 4, 2]) e = press(e, d);
+  e = backspace(e);
+  assert.deepEqual(e.digits, [null, 4, 5]);
+  assert.equal(e.cursor, 0);
+  e = backspace(e);
+  assert.deepEqual(e.digits, [null, null, 5]);
+  assert.equal(e.cursor, 1);
+  e = backspace(e);
+  assert.deepEqual(e.digits, [null, null, null]);
+  assert.equal(e.cursor, 2);
+  assert.deepEqual(backspace(e), e);
+});
+
+test("vertical backspace after two of three digits moves the cursor to the cleared box", () => {
+  let e = press(press(V(245), 5), 4); // cursor waits on the hundreds box
+  assert.equal(e.cursor, 0);
+  e = backspace(e);
+  assert.deepEqual(e.digits, [null, null, 5]);
+  assert.equal(e.cursor, 1);
+});
+
+test("vertical backspace with the cursor moved to an empty box still clears a digit", () => {
+  let e = select(press(V(245), 5), 0);
+  e = backspace(e);
+  assert.deepEqual(e.digits, [null, null, null]);
+  assert.equal(e.cursor, 2);
+});
+
+test("vertical backspace on an empty entry is a no-op that puts the cursor on the ones", () => {
+  const e = backspace(select(V(245), 0));
+  assert.deepEqual(e.digits, [null, null, null]);
+  assert.equal(e.cursor, 2);
+});

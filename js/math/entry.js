@@ -29,14 +29,11 @@ export function press(entry, digit) {
 export function backspace(entry) {
   const digits = [...entry.digits];
   if (entry.layout === "vertical") {
-    if (digits[entry.cursor] !== null) {
-      digits[entry.cursor] = null;
-      return { ...entry, digits };
-    }
-    const prev = entry.cursor + 1;
-    if (prev >= entry.boxes) return entry;
-    digits[prev] = null;
-    return { ...entry, digits, cursor: prev };
+    // Typed ones-first, so the leftmost digit is the newest; the cursor lands on its box.
+    const last = digits.findIndex((d) => d !== null);
+    if (last === -1) return entry.cursor === entry.boxes - 1 ? entry : { ...entry, cursor: entry.boxes - 1 };
+    digits[last] = null;
+    return { ...entry, digits, cursor: last };
   }
   const n = typedCount(entry);
   if (n === 0) return entry;
