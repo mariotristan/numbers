@@ -32,7 +32,7 @@ export function current(round) {
 
 export function answer(round, value) {
   const ignored = { round, correct: false, coinsDelta: 0 };
-  if (round.awaitingNext || round.phase === "done" || value === null || value === undefined) return ignored;
+  if (round.awaitingNext || round.phase === "done" || value === null || value === undefined || value === "" || !Number.isFinite(Number(value))) return ignored;
   const problem = current(round);
   if (!problem) return ignored;
   const correct = Number(value) === problem.answer;

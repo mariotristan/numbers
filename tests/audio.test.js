@@ -86,3 +86,20 @@ test("sfx builds nodes for every kind with a fake AudioContext", () => {
     if (saved === undefined) delete globalThis.AudioContext; else globalThis.AudioContext = saved;
   }
 });
+
+test("js sources use no regex lookbehind (old Safari throws a SyntaxError)", async () => {
+  const { readdirSync, readFileSync, statSync } = await import("node:fs");
+  const { join } = await import("node:path");
+  const root = new URL("../js", import.meta.url).pathname;
+  const files = (dir) => readdirSync(dir).flatMap((n) => {
+    const p = join(dir, n);
+    return statSync(p).isDirectory() ? files(p) : p.endsWith(".js") ? [p] : [];
+  });
+  for (const f of files(root)) assert.doesNotMatch(readFileSync(f, "utf8"), /\(\?<[=!]/, f);
+});
+
+test("speakable still reads symbols between numbers, chained and unspaced", () => {
+  assert.equal(speakable("34 + 25 = 59"), "34 plus 25 equals 59");
+  assert.equal(speakable("1+2+3"), "1 plus 2 plus 3");
+  assert.equal(speakable("T-Rex 2nd-grade"), "T-Rex 2nd-grade");
+});

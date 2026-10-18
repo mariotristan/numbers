@@ -41,6 +41,7 @@ export function render(root, ctx) {
   view.classList.add("play-screen");
   root.append(view);
   let shownAt = 0;
+  const tooSoon = () => performance.now() - shownAt < TAP_GUARD_MS;
 
   function finish() {
     if (p.finished) return;
@@ -77,7 +78,7 @@ export function render(root, ctx) {
   }
 
   function submit(value) {
-    if (p.round.phase !== "question" || performance.now() - shownAt < TAP_GUARD_MS) return;
+    if (p.round.phase !== "question" || tooSoon()) return;
     const result = answer(p.round, value);
     if (result.round === p.round) return; // ignored (blank, or already answered)
     p.round = result.round;
@@ -164,7 +165,7 @@ export function render(root, ctx) {
       check.disabled = answered || !canCheck(e);
     };
     const edit = (fn) => {
-      if (p.round.phase !== "question") return;
+      if (p.round.phase !== "question" || tooSoon()) return;
       p.entry = fn(p.entry);
       paint();
     };

@@ -104,3 +104,12 @@ test("round survives JSON round-trip mid-explanation", () => {
   assert.deepEqual(summary(b), summary(a));
   assert.equal(summary(a).score, 9);
 });
+
+test("answer ignores an empty string and non-finite values", () => {
+  const r = startRound(1, seededRng(1), []);
+  for (const v of ["", NaN, Infinity, "abc"]) {
+    const res = answer(r, v);
+    assert.equal(res.round, r);
+    assert.equal(res.coinsDelta, 0);
+  }
+});

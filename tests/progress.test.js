@@ -174,3 +174,12 @@ test("recordRound clamps the score to an integer from 0 to 10", () => {
   assert.equal(recordRound(s, 1, { score: NaN, problemKeys: [] }).levels[1].bestScore, 0);
   assert.equal(recordRound(s, 1, { score: 99, problemKeys: [] }).levels[1].bestStars, 3);
 });
+
+test("validate keeps a save whose settings are missing, using defaults", () => {
+  const { settings, ...rest } = { ...freshState(), coins: 7 };
+  for (const raw of [rest, { ...rest, settings: "x" }]) {
+    const s = validate(raw);
+    assert.equal(s.coins, 7);
+    assert.deepEqual(s.settings, { sfx: true, voice: true });
+  }
+});

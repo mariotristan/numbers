@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createEntry, press, backspace, select, entryValue, canCheck } from "../js/math/entry.js";
 
-const V = (answer) => createEntry({ answer, layout: "vertical" });
+const V = (answer, a, b) => createEntry({ answer, a, b, layout: "vertical" });
 const H = (answer) => createEntry({ answer, layout: "horizontal" });
 
 test("vertical entry fills ones first, then moves left", () => {
@@ -128,4 +128,17 @@ test("vertical backspace on an empty entry is a no-op that puts the cursor on th
   const e = backspace(select(V(245), 0));
   assert.deepEqual(e.digits, [null, null, null]);
   assert.equal(e.cursor, 2);
+});
+
+test("vertical boxes match the problem width, not the answer's (452 - 387 = 65)", () => {
+  const e = V(65, 452, 387);
+  assert.equal(e.boxes, 3);
+  assert.equal(e.cursor, 2);
+  const typed = press(press(e, 5), 6);
+  assert.deepEqual(typed.digits, [null, 6, 5]);
+  assert.equal(entryValue(typed), 65);
+  assert.equal(canCheck(typed), true);
+  assert.equal(canCheck(press(select(e, 0), 6)), false);
+  assert.equal(V(85, 90, 5).boxes, 2);
+  assert.equal(V(120, 60, 60).boxes, 3);
 });

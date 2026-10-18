@@ -152,7 +152,7 @@ function cleanLastProblems(raw) {
 // Returns a clean state, or null if the shape or version is wrong.
 export function validate(raw) {
   if (!isObject(raw) || raw.version !== VERSION || !LANGS.includes(raw.lang)) return null;
-  if (!isObject(raw.settings)) return null;
+  const rawSettings = isObject(raw.settings) ? raw.settings : {};
   const owned = knownIds(raw.owned, CLOSET);
   const rawWorn = isObject(raw.worn) ? raw.worn : {};
   const worn = {};
@@ -165,7 +165,7 @@ export function validate(raw) {
     version: VERSION,
     lang: raw.lang,
     langChosen: raw.langChosen === true,
-    settings: { sfx: raw.settings.sfx !== false, voice: raw.settings.voice !== false },
+    settings: { sfx: rawSettings.sfx !== false, voice: rawSettings.voice !== false },
     levels: cleanLevels(raw.levels),
     coins,
     lifetimeCoins: Math.max(coins, count(raw.lifetimeCoins)),

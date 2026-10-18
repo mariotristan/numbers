@@ -1,9 +1,12 @@
 // Number-pad entry state. Plain JSON; every function returns a new object.
 const HORIZONTAL_BOXES = 3;
 
+// Same width as the problem's columns, so the box count never hints at the answer.
+const verticalWidth = (p) => Math.max(...[p.a ?? 0, p.b ?? 0, p.answer].map((n) => String(n).length));
+
 export function createEntry(problem) {
   const vertical = problem.layout === "vertical";
-  const boxes = vertical ? String(problem.answer).length : HORIZONTAL_BOXES;
+  const boxes = vertical ? verticalWidth(problem) : HORIZONTAL_BOXES;
   return {
     layout: problem.layout,
     boxes,

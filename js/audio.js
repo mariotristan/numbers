@@ -29,7 +29,7 @@ const WORDS = {
 // so "T-Rex" and "2nd-grade" are left alone.
 export function speakable(text, lang = "en") {
   const w = WORDS[lang] ?? WORDS.en;
-  const between = (sym, word) => (str) => str.replace(new RegExp(`(?<=[\\d\\s])${sym}(?=[\\d\\s])`, "g"), ` ${word} `);
+  const between = (sym, word) => (str) => str.replace(new RegExp(`([\\d\\s])${sym}(?=[\\d\\s])`, "g"), `$1 ${word} `);
   return [between("\\+", w.plus), between("[−-]", w.minus), between("×", w.times), between("=", w.equals)]
     .reduce((str, fn) => fn(str), text)
     .replace(/\p{Extended_Pictographic}|‍|️/gu, "")
@@ -51,10 +51,7 @@ export function stopAll() {
 
 export function speak(text, lang, { maxMs = 6000 } = {}) {
   const synth = globalThis.speechSynthesis;
-  const words = speakable(text ?? "", lang);
-  if (!settings.voice || !synth || typeof SpeechSynthesisUtterance === "undefined" || !words) {
-    return Promise.resolve();
-  }
+  if (!settings.voice || !synth || typeof SpeechSynthesisUtterance === "undefined") return Promise.resolve();
   return new Promise((resolve) => {
     let done = false;
     let utterance = null;
@@ -67,6 +64,11 @@ export function speak(text, lang, { maxMs = 6000 } = {}) {
     };
     const timer = setTimeout(finish, maxMs);
     try {
+      const words = speakable(text ?? "", lang);
+      if (!words) {
+        finish();
+        return;
+      }
       synth.cancel();
       utterance = new SpeechSynthesisUtterance(words);
       utterance.lang = lang === "es" ? "es-MX" : "en-US";
