@@ -1,6 +1,6 @@
 // Small DOM helpers shared by screens.
 import { setLanguage } from "./progress.js";
-import { BRUNO_SVG } from "./bruno.js";
+import { brunoSvg } from "./bruno.js";
 import { icon, flag } from "./icons.js";
 
 export function h(tag, attrs = {}, ...children) {
@@ -60,13 +60,13 @@ function popBubble(bubble) {
   bubble.classList.add("pop");
 }
 
-// Animated Bruno with a speech bubble. Tap Bruno to hear the line again.
+// Animated Bruno in his worn outfit, with a speech bubble. Tap Bruno to hear the line again.
 export function bruno(ctx, text, { speakNow = true } = {}) {
   const bubble = h("p", { class: "bubble pop", "aria-live": "polite" }, text);
   const face = h(
     "button",
     { class: "bruno-face", "aria-label": ctx.t("brunoRepeat"), onclick: () => ctx.audio.speak(bubble.textContent) },
-    svgElement(BRUNO_SVG),
+    svgElement(brunoSvg(ctx.state?.worn)),
   );
   const el = h("div", { class: "bruno" }, face, bubble);
   el.say = (line) => {
