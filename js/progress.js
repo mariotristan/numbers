@@ -29,13 +29,13 @@ export function freshState() {
 }
 
 export function addCoins(state, n) {
-  const add = Math.max(0, Math.floor(n));
+  const add = count(n); // NaN, undefined and negatives add nothing
   return { ...state, coins: state.coins + add, lifetimeCoins: state.lifetimeCoins + add };
 }
 
 export function recordRound(state, levelId, { score, problemKeys }) {
   const old = state.levels[levelId] ?? { bestScore: 0, bestStars: 0, rounds: 0 };
-  const bestScore = Math.max(old.bestScore, score);
+  const bestScore = Math.max(old.bestScore, Math.min(MAX_SCORE, count(score)));
   return {
     ...state,
     roundsPlayed: state.roundsPlayed + 1,

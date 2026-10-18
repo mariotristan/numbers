@@ -155,3 +155,22 @@ test("withBrowserLanguage picks es for a Spanish browser only until a language i
   delete old.langChosen;
   assert.equal(validate(old).langChosen, false);
 });
+
+test("addCoins ignores NaN, undefined, negative and fractional amounts", () => {
+  const s = freshState();
+  for (const n of [NaN, undefined, null, -5, "x", Infinity]) {
+    const t = addCoins(s, n);
+    assert.equal(t.coins, 0, String(n));
+    assert.equal(t.lifetimeCoins, 0, String(n));
+  }
+  assert.equal(addCoins(s, 2.7).coins, 2);
+});
+
+test("recordRound clamps the score to an integer from 0 to 10", () => {
+  const s = freshState();
+  assert.equal(recordRound(s, 1, { score: 99, problemKeys: [] }).levels[1].bestScore, 10);
+  assert.equal(recordRound(s, 1, { score: -3, problemKeys: [] }).levels[1].bestScore, 0);
+  assert.equal(recordRound(s, 1, { score: 7.6, problemKeys: [] }).levels[1].bestScore, 7);
+  assert.equal(recordRound(s, 1, { score: NaN, problemKeys: [] }).levels[1].bestScore, 0);
+  assert.equal(recordRound(s, 1, { score: 99, problemKeys: [] }).levels[1].bestStars, 3);
+});
