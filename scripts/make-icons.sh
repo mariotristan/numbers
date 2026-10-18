@@ -31,7 +31,7 @@ HTML
 }
 
 page 88 full
-page 62 maskable
+page 58 maskable
 sips -z 512 512 "$TMP/full.png" --out icons/icon-512.png >/dev/null
 sips -z 192 192 "$TMP/full.png" --out icons/icon-192.png >/dev/null
 sips -z 180 180 "$TMP/full.png" --out icons/icon-180.png >/dev/null

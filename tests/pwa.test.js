@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import vm from "node:vm";
+import { inflateSync } from "node:zlib";
 
 // Load sw.js in a sandbox so its top-level declarations can be inspected.
 function loadServiceWorker() {
@@ -111,4 +112,63 @@ test("app icons are real PNGs of the right size, and the maskable one is listed"
   }
   const manifest = JSON.parse(readFileSync("manifest.webmanifest", "utf8"));
   assert.ok(manifest.icons.some((i) => i.purpose === "maskable" && i.src === "icons/icon-maskable-512.png"));
+});
+
+// Decodes an 8-bit RGB/RGBA, non-interlaced PNG into rows of pixels (enough for our icons).
+function decodePng(file) {
+  const buf = readFileSync(file);
+  const width = buf.readUInt32BE(16);
+  const height = buf.readUInt32BE(20);
+  const [depth, colorType, , , interlace] = buf.subarray(24, 29);
+  assert.ok(depth === 8 && (colorType === 2 || colorType === 6) && interlace === 0, `${file}: unsupported PNG`);
+  const bpp = colorType === 6 ? 4 : 3;
+  const chunks = [];
+  for (let at = 8; at < buf.length;) {
+    const len = buf.readUInt32BE(at);
+    if (buf.toString("latin1", at + 4, at + 8) === "IDAT") chunks.push(buf.subarray(at + 8, at + 8 + len));
+    at += len + 12;
+  }
+  const raw = inflateSync(Buffer.concat(chunks));
+  const stride = width * bpp;
+  const rows = [];
+  let prev = Buffer.alloc(stride);
+  for (let y = 0; y < height; y++) {
+    const filter = raw[y * (stride + 1)];
+    const row = Buffer.from(raw.subarray(y * (stride + 1) + 1, (y + 1) * (stride + 1)));
+    for (let x = 0; x < stride; x++) {
+      const a = x >= bpp ? row[x - bpp] : 0;
+      const b = prev[x];
+      const c = x >= bpp ? prev[x - bpp] : 0;
+      const paeth = () => {
+        const p = a + b - c;
+        const [pa, pb, pc] = [Math.abs(p - a), Math.abs(p - b), Math.abs(p - c)];
+        return pa <= pb && pa <= pc ? a : pb <= pc ? b : c;
+      };
+      const add = [0, a, b, (a + b) >> 1, paeth()][filter];
+      row[x] = (row[x] + add) & 0xff;
+    }
+    rows.push(row);
+    prev = row;
+  }
+  return { width, height, pixel: (x, y) => [...rows[y].subarray(x * bpp, x * bpp + 3)] };
+}
+
+test("the maskable icon's art sits inside the 80% safe circle with room to spare", () => {
+  const { width, height, pixel } = decodePng("icons/icon-maskable-512.png");
+  const r = 0.37 * width; // the safe circle is 0.40; keep a margin
+  let outside = 0;
+  let art = 0;
+  for (let y = 0; y < height; y += 2) {
+    for (let x = 0; x < width; x += 2) {
+      const [R, G, B] = pixel(x, y);
+      const sky = B > 230 && R > 175 && G > 215 && R < B; // the light-blue background
+      if (Math.hypot(x - width / 2, y - height / 2) > r) { if (!sky) outside++; } else if (!sky) art++;
+    }
+  }
+  assert.equal(outside, 0, `${outside} art pixels outside the safe circle`);
+  assert.ok(art > 5000, "the icon has art in the middle");
+});
+
+test("the cache name was bumped for the new maskable icon", () => {
+  assert.equal(loadServiceWorker()("CACHE"), "numbers-v2");
 });

@@ -2,7 +2,7 @@
 // Bump CACHE whenever a picture, sound, or icon file changes so installed copies download it again.
 // Every game on mariotristan.github.io shares one Cache Storage: only ever touch our own caches.
 const CACHE_PREFIX = "numbers-";
-const CACHE = `${CACHE_PREFIX}v1`;
+const CACHE = `${CACHE_PREFIX}v2`;
 
 // Every file the game needs. tests/pwa.test.js keeps this list in sync with the repo.
 const PRECACHE = [
