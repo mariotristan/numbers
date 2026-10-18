@@ -8,7 +8,7 @@ import { startRound, current, answer, nextStep, prevStep, advance, summary } fro
 import { addCoins, recordRound, awardBadges, isLevelUnlocked } from "../progress.js";
 import { choicesFor } from "../math/choices.js";
 import { createEntry, press, backspace, select, entryValue, canCheck } from "../math/entry.js";
-import { explain } from "../math/explain.js";
+import { explain, briefly } from "../math/explain.js";
 import { renderProblem, renderVisual, placeOf, tradeSound } from "../blocks.js";
 
 const NEXT_DELAY_MS = 1200;
@@ -97,7 +97,9 @@ export function render(root, ctx) {
   const progressDots = (round) => {
     const n = Math.min(round.index + 1, ROUND_LENGTH);
     return h("div", { class: "progress" },
-      h("span", { class: "sr-only" }, ctx.t("questionOf", { n, total: ROUND_LENGTH })),
+      h("span", { class: "sr-only" }, round.inBonus
+        ? ctx.t("bonusTryOf", { n: round.bonusIndex + 1, total: round.bonus.length })
+        : ctx.t("questionOf", { n, total: ROUND_LENGTH })),
       h("span", { class: "dots", "aria-hidden": "true" },
         Array.from({ length: ROUND_LENGTH }, (_, i) => {
           const done = i < round.results.length ? (round.results[i] ? " ok" : " miss") : "";
@@ -218,7 +220,8 @@ export function render(root, ctx) {
   }
 
   function explainView(round, problem, { speakNow }) {
-    const steps = explain(problem);
+    // A missed bonus try shows the explanation again, briefly (spec: bonus tries).
+    const steps = round.inBonus ? briefly(explain(problem)) : explain(problem);
     const i = Math.min(Math.max(round.explainStep, 0), steps.length - 1);
     const step = steps[i];
     const last = i === steps.length - 1;

@@ -4,7 +4,8 @@
 // a, b and the answer (that is the answer's width, except when a subtraction result has
 // fewer digits, e.g. 452 − 387). Missing digits are null so the renderer leaves blanks:
 // `bottom` is null left of a shorter operand, `carry` is null where nothing was carried,
-// and `result` is null until that column has been written. `top` holds the current
+// and `result` is null until that column has been written (and stays null for a leading
+// zero, e.g. the hundreds of 452 − 387 = 65). `top` holds the current
 // (post-borrow) digits; `crossed` marks columns whose top digit borrowing changed.
 import { digitsOf } from "./problems.js";
 
@@ -49,6 +50,7 @@ const ADD_KEYS = ["exOnesAdd", "exTensAdd", "exHundredsAdd"];
 const ADD_CARRY_KEYS = ["exOnesAdd", "exTensAddCarry", "exHundredsAddCarry"];
 const CARRY_KEYS = ["exCarry", "exCarryHundred"];
 const SUB_KEYS = ["exOnesSub", "exTensSub", "exHundredsSub"];
+const NOTHING_LEFT_KEYS = [null, "exNothingLeftTens", "exNothingLeftHundreds"];
 
 function pad(n, width) {
   const d = digitsOf(n);
@@ -62,6 +64,7 @@ function columnSteps(op, a, b, answer) {
   const carry = Array(width).fill(null);
   const crossed = Array(width).fill(false);
   const result = Array(width).fill(null);
+  const leading = width - digitsOf(answer).length; // columns left of the answer's first digit
   const steps = [];
   const snap = (key, vars, focus, action = null) =>
     steps.push(step(key, vars, {
@@ -79,6 +82,7 @@ function columnSteps(op, a, b, answer) {
       // A carry writes its digit in the snap step, after Bruno explains it.
       if (sum < 10) result[i] = sum;
       if (y === null && !carried) snap("exBringDown", { x }, i);
+      else if (y === null && top[i] === null) snap("exCarryDown", {}, i);
       else if (y === null) snap("exAddCarryOnly", { x, sum }, i);
       else snap(carried ? ADD_CARRY_KEYS[place] : ADD_KEYS[place], { x, y, sum }, i);
       // width includes the answer, so a column that reaches 10 always has one to its left.
@@ -102,6 +106,10 @@ function columnSteps(op, a, b, answer) {
         }
       }
       const x = top[i];
+      if (i < leading) {
+        snap(NOTHING_LEFT_KEYS[place], {}, i); // a leading zero: the box stays empty
+        continue;
+      }
       result[i] = x - (y ?? 0);
       if (y === null) snap("exColumnSub", { x }, i);
       else snap(SUB_KEYS[place], { x, y, diff: result[i] }, i);
@@ -133,10 +141,19 @@ function arraySteps(p) {
 }
 
 // 2-digit × 1-digit: break apart into tens and ones, multiply each, then column-add.
+// A multiple of ten (30 × 4) has nothing to split: 3 tens × 4 = 12 tens = 120.
 function splitSteps(p) {
   const { a, b: factor } = p;
   const ones = a % 10;
   const tens = a - ones;
+  if (ones === 0) {
+    const t = tens / 10;
+    const visual = (partials) => ({ type: "split", tens, ones, factor, partials });
+    return [
+      step("exTensOnly", { a, t }, visual(null)),
+      step("exTensTimes", { t, f: factor, n: t * factor, total: p.answer }, visual([p.answer, 0])),
+    ];
+  }
   const partials = [tens * factor, ones * factor];
   const visual = (withPartials) => ({ type: "split", tens, ones, factor, partials: withPartials ? partials : null });
   return [
@@ -155,4 +172,9 @@ export function explain(problem) {
   else if (op === "×") steps = arraySteps(problem);
   else steps = columnSteps(op, a, b, answer);
   return [...steps, answerStep(problem)];
+}
+
+// A missed bonus try shows the explanation again, briefly: the answer step and the one before it.
+export function briefly(steps) {
+  return steps.slice(-2);
 }

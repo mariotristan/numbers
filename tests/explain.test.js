@@ -4,7 +4,7 @@ import { seededRng } from "./helpers.js";
 import { STRINGS } from "../js/data/strings.js";
 import { LEVELS } from "../js/data/levels.js";
 import { generate } from "../js/math/problems.js";
-import { explain } from "../js/math/explain.js";
+import { explain, briefly } from "../js/math/explain.js";
 
 const LAYOUT = { 1: "horizontal", 2: "horizontal", 8: "horizontal", 11: "horizontal", 12: "horizontal" };
 const P = (op, a, b, level) => {
@@ -40,7 +40,8 @@ test("column explanations finish with the answer's digits", () => {
     const cols = explain(p).filter((s) => s.visual.type === "column");
     if (!cols.length) continue;
     const v = cols.at(-1).visual;
-    const want = String(p.answer).padStart(v.result.length, "0").split("").map(Number);
+    const digits = String(p.answer).split("").map(Number);
+    const want = [...Array(v.result.length - digits.length).fill(null), ...digits];
     assert.deepEqual(v.result, want, p.key);
     for (const s of cols) {
       const n = s.visual.result.length;
@@ -147,4 +148,49 @@ test("no explanation string says wrong/no/incorrecto", () => {
   for (const k of keys) for (const lang of ["en", "es"]) {
     assert.ok(!banned.test(STRINGS[k][lang]), `${k}.${lang}: ${STRINGS[k][lang]}`);
   }
+});
+
+test("a carry into a column with no top digit comes straight down (60 + 48 in 18 × 6)", () => {
+  const cols = explain(P("×", 18, 6, 13)).filter((s) => s.visual.type === "column");
+  const down = cols.find((s) => s.visual.focus === 0);
+  assert.equal(down.say.key, "exCarryDown");
+  assert.deepEqual(down.visual.result, [1, 0, 8]);
+  assert.ok(explain(P("×", 18, 6, 13)).every((s) => s.say.key !== "exAddCarryOnly" || s.say.vars.x !== 0));
+});
+
+test("leading zeros in a subtraction result stay empty (452 − 387, 105 − 87, 403 − 398)", () => {
+  const colsOf = (a, b) => explain(P("-", a, b, 10)).filter((s) => s.visual.type === "column");
+  const a = colsOf(452, 387);
+  assert.deepEqual(a.at(-1).visual.result, [null, 6, 5]);
+  assert.equal(a.at(-1).say.key, "exNothingLeftHundreds");
+  const b = colsOf(105, 87);
+  assert.deepEqual(b.at(-1).visual.result, [null, 1, 8]);
+  assert.equal(b.at(-1).say.key, "exNothingLeftHundreds");
+  assert.ok(b.every((s) => s.say.key !== "exColumnSub"));
+  const c = colsOf(403, 398);
+  assert.deepEqual(c.at(-1).visual.result, [null, null, 5]);
+  assert.ok(c.some((s) => s.say.key === "exNothingLeftTens"));
+  assert.equal(last(explain(P("-", 452, 387, 10))).visual.value, 65);
+});
+
+test("level 13 multiples of ten skip the split: 30 × 4 is 3 tens × 4 = 12 tens = 120", () => {
+  const steps = explain(P("×", 30, 4, 13));
+  assert.ok(steps.every((s) => s.say.key !== "exSplit"));
+  const t = steps.find((s) => s.say.key === "exTensTimes");
+  assert.deepEqual(t.say.vars, { t: 3, f: 4, n: 12, total: 120 });
+  assert.equal(last(steps).visual.value, 120);
+  assert.ok(steps.every((s) => s.visual.type !== "split" || s.visual.ones === 0));
+});
+
+test("briefly keeps only the answer step and the one before it (missed bonus try)", () => {
+  const steps = explain(P("+", 47, 38, 5));
+  assert.deepEqual(briefly(steps), steps.slice(-2));
+  assert.equal(briefly(steps).at(-1).visual.type, "answer");
+  assert.deepEqual(briefly(steps.slice(-1)), steps.slice(-1));
+});
+
+test("Spanish borrow lines ask naturally (quitarle ... al ...)", () => {
+  assert.match(STRINGS.exBorrow.es, /quitarle \{y\} al \{x\}/);
+  assert.match(STRINGS.exBorrowAcrossZero.es, /quitarle \{y\} al \{x\}/);
+  assert.ok(!/quitar \{y\}/.test(STRINGS.exBorrowHundred.es));
 });

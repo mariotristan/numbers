@@ -68,6 +68,7 @@ export const STRINGS = {
   askProblem: { en: "What is {a} {op} {b}?", es: "¿Cuánto es {a} {op} {b}?" },
   bonusTry: { en: "Bonus try", es: "Intento extra" },
   bonusIntro: { en: "Bonus try! Let's do this one again.", es: "¡Intento extra! Hagamos esta otra vez." },
+  bonusTryOf: { en: "Bonus try {n} of {total}", es: "Intento extra {n} de {total}" },
   questionOf: { en: "Question {n} of {total}", es: "Pregunta {n} de {total}" },
   showMe: { en: "Show me", es: "Muéstrame" },
   deleteDigit: { en: "Delete", es: "Borrar" },
@@ -123,6 +124,7 @@ export const STRINGS = {
     es: "Ahora las centenas: {x} + {y}, más el 1 que llevamos, son {sum}.",
   },
   exAddCarryOnly: { en: "{x} plus the 1 we carried is {sum}.", es: "{x} más el 1 que llevamos son {sum}." },
+  exCarryDown: { en: "The 1 we carried comes down.", es: "El 1 que llevamos baja tal cual." },
   exBringDown: { en: "Nothing to add here, so {x} comes straight down.", es: "Aquí solo está el {x}, así que baja tal cual." },
   exCarry: {
     en: "{sum} ones is too many! 10 ones snap into 1 ten. We write {digit} and carry the 1.",
@@ -134,15 +136,15 @@ export const STRINGS = {
   },
   exBorrow: {
     en: "Can we take {y} from {x}? We need more ones! We borrow 1 ten and break it into 10 ones. Now we have {now}.",
-    es: "¿Podemos quitar {y} a {x}? ¡Faltan unidades! Pedimos prestada 1 decena y la rompemos en 10 unidades. Ahora tenemos {now}.",
+    es: "¿Podemos quitarle {y} al {x}? ¡Faltan unidades! Pedimos prestada 1 decena y la rompemos en 10 unidades. Ahora tenemos {now}.",
   },
   exBorrowHundred: {
     en: "Can we take {y} tens from {x} tens? We need more tens! We borrow 1 hundred and break it into 10 tens. Now we have {now}.",
-    es: "¿Podemos quitar {y} decenas a {x} decenas? ¡Faltan decenas! Pedimos prestada 1 centena y la rompemos en 10 decenas. Ahora tenemos {now}.",
+    es: "¿Podemos quitarles {y} decenas a las {x} decenas? ¡Faltan decenas! Pedimos prestada 1 centena y la rompemos en 10 decenas. Ahora tenemos {now}.",
   },
   exBorrowAcrossZero: {
     en: "Can we take {y} from {x}? We need more ones, but the tens are empty! So we ask the hundreds first: 1 hundred breaks into 10 tens.",
-    es: "¿Podemos quitar {y} a {x}? Necesitamos más unidades, ¡pero las decenas están en cero! Primero pedimos prestado a las centenas: 1 centena se rompe en 10 decenas.",
+    es: "¿Podemos quitarle {y} al {x}? Necesitamos más unidades, ¡pero las decenas están en cero! Primero pedimos prestado a las centenas: 1 centena se rompe en 10 decenas.",
   },
   exBorrowThen: {
     en: "Now 1 ten breaks into 10 ones. That makes {x} ones!",
@@ -152,6 +154,14 @@ export const STRINGS = {
   exTensSub: { en: "Now the tens: {x} − {y} = {diff}.", es: "Ahora las decenas: {x} − {y} = {diff}." },
   exHundredsSub: { en: "Now the hundreds: {x} − {y} = {diff}.", es: "Ahora las centenas: {x} − {y} = {diff}." },
   exColumnSub: { en: "Nothing to take away here, so {x} comes straight down.", es: "Aquí solo queda el {x}, así que baja tal cual." },
+  exNothingLeftTens: {
+    en: "Nothing is left in the tens, so that box stays empty.",
+    es: "Las decenas se acabaron, así que esa casilla queda vacía.",
+  },
+  exNothingLeftHundreds: {
+    en: "Nothing is left in the hundreds, so that box stays empty.",
+    es: "Las centenas se acabaron, así que esa casilla queda vacía.",
+  },
   exOneRow: { en: "1 × {b} is just 1 row of {b}. That's {b}!", es: "1 × {b} es solo 1 fila de {b}. ¡Son {b}!" },
   exRows: {
     en: "{a} × {b} means {a} rows of {b}. Here's the first row: {b}.",
@@ -165,6 +175,11 @@ export const STRINGS = {
     es: "Truco del 5: ¡el resultado siempre termina en 5 o en 0, como {total}!",
   },
   exSplit: { en: "Let's break {a} apart into {tens} and {ones}.", es: "Vamos a separar {a} en {tens} y {ones}." },
+  exTensOnly: { en: "{a} is {t} tens.", es: "{a} son {t} decenas." },
+  exTensTimes: {
+    en: "{t} tens × {f} = {n} tens. That's {total}!",
+    es: "{t} decenas × {f} = {n} decenas. ¡Son {total}!",
+  },
   exPartials: {
     en: "{tens} × {f} = {p1}, and {ones} × {f} = {p2}. Now we add them!",
     es: "{tens} × {f} = {p1}, y {ones} × {f} = {p2}. ¡Ahora los sumamos!",

@@ -125,7 +125,6 @@ function columnGrid(v) {
   const original = originalTop(v);
   const cols = Array.from({ length: width }, (_, i) => i);
   const at = (i) => `${placeOf(i, width)}${v.focus === i ? " focus" : ""}`;
-  const firstShown = v.result.findIndex((d, i) => d !== 0 || i === width - 1);
   const cells = [
     h("span", { class: "cell" }),
     cols.map((i) => h("span", { class: `cell carry ${at(i)}` }, v.carry[i] ?? "")),
@@ -138,9 +137,7 @@ function columnGrid(v) {
     cols.map((i) => digitCell(v.bottom[i], `digit ${at(i)}`)),
     h("span", { class: "rule" }),
     h("span", { class: "cell" }),
-    cols.map((i) => (v.result[i] === 0 && i < firstShown
-      ? h("span", { class: `cell lead ${at(i)}` })
-      : h("span", { class: `cell box ${at(i)}` }, v.result[i] ?? ""))),
+    cols.map((i) => h("span", { class: `cell box ${at(i)}` }, v.result[i] ?? "")),
   ];
   return h("div", { class: "column", style: `--cols: ${width}` }, cells);
 }
@@ -167,11 +164,13 @@ function arrayVisual({ rows, cols, filledRows }, { reducedMotion }) {
 }
 
 // 2-digit x 1-digit: the tens part (sticks) and the ones part (cubes), each times the factor.
+// A multiple of ten (ones 0) shows only the tens part.
 function splitVisual({ tens, ones, factor, partials }) {
   const part = (n, partial, place) => h("div", { class: `split-part ${place}-part` },
     h("div", { class: "split-eq" }, numberEl(n), h("span", { class: "op" }, "×"), numberEl(factor),
       partial == null ? null : [h("span", { class: "op" }, "="), numberEl(partial)]),
     renderBlocks(n, "mini"));
+  if (ones === 0) return part(tens, partials?.[0], "tens");
   return [
     part(tens, partials?.[0], "tens"),
     h("span", { class: "op split-plus" }, "+"),
